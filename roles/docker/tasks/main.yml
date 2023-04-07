@@ -1,0 +1,22 @@
+- name: install docker packages
+  apt:
+    name:
+      - docker
+      - docker-compose
+    allow_unauthenticated: true
+    state: latest
+
+- name: install git
+  apt:
+    name:
+      - git
+    allow_unauthenticated: true
+    state: latest
+
+- name: ensure github.com is a known host
+  lineinfile:
+    dest: /home/pi/.ssh/known_hosts
+    create: yes
+    state: present
+    line: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
+    regexp: "^github\\.com"

@@ -19,7 +19,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /data/certbot/conf/options-ssl-nginx.conf:/etc/letsencrypt/options-ssl-nginx.conf:ro
-      - /data/nginx/htdocs:/var/www/htdocs:ro
+      - ./nginx_htdocs:/var/www/htdocs:ro
     networks:
       iotnet:    
         aliases:
@@ -98,16 +98,7 @@ services:
       iotnet:
         aliases:
           - mqtt.iot.glatzer.eu
-  internetstate:
-    build: internetstate
-    restart: unless-stopped
-    networks:
-      iotnet:
-  covid:
-    build: covid
-    restart: unless-stopped
-    networks:
-      iotnet:
+
 secrets:
   cert_file:
     file: /data/certbot/conf/live/iot.glatzer.eu/fullchain.pem

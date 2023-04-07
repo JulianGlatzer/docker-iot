@@ -1,0 +1,2 @@
+[iot.glatzer.eu]
+iot.glatzer.eu ansible_connection=ssh  ansible_user=pi
