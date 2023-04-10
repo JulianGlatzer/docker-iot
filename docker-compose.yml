@@ -109,7 +109,7 @@ secrets:
     file: /secrets/certbot/live/iot.glatzer.eu/privkey.pem
   trusted_cert_file:
     file: /secrets/certbot/live/iot.glatzer.eu/chain.pem
-  mosquitto_passd:
+  mosquitto_passwd:
     file: /secrets/mosquitto_passwd
 
 networks:
