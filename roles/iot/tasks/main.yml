@@ -1,0 +1,77 @@
+- name: git clone
+  become: no
+  git:
+    dest: /home/pi/git
+    repo: git@github.com:JulianGlatzer/docker-iot.git
+    update: yes
+    version: master
+
+- name: deploy secrets
+  copy:
+    src: ./secrets/
+    dest: /secrets/
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: nfs package present
+  apt:
+    name:
+    - nfs-common
+    state: present
+
+- name: check if /data exists
+  local_action: stat path=/data
+  register: data_dir
+  become: no
+
+- name: create /data mountpoint
+  file:
+     path: "/data"
+     state: directory
+     mode: "777"
+     owner: root
+     group: root
+  when: not data_dir.stat.exists
+
+- name: mount /data network share
+  ansible.posix.mount:
+    src: "192.168.1.95:/data/iot.glatzer.eu/"
+    path: "/data"
+    fstype: nfs
+    opts: rw,sync,hard
+    state: mounted
+
+- name: create /data/mqtt directories
+  become: yes
+  become_user: pi
+  file:
+     path: "{{ item }}"
+     state: directory
+     mode: "744"
+     owner: pi
+     group: pi
+  with_items:
+    - /data/mqtt
+    - /data/mqtt/data
+    - /data/mqtt/log
+
+- name: create /data/influxdb directories
+  become: yes
+  become_user: pi
+  file:
+     path: "/data/influxdb"
+     state: directory
+     mode: "744"
+     owner: pi
+     group: pi
+
+- name: create /data/grafana directories
+  become: yes
+  become_user: pi
+  file:
+     path: "/data/grafana"
+     state: directory
+     mode: "744"
+     owner: pi
+     group: pi

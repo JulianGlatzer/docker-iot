@@ -1,0 +1,32 @@
+- name: create /data/certbot
+  file:
+     path: "/data/certbot/logs"
+     state: directory
+     mode: "777"
+     owner: nobody
+     group: nogroup
+
+- name: stop docker
+  become: True
+  shell:
+    cmd: "docker-compose -f docker-compose.yml --env /secrets/env down"
+    chdir: /home/pi/git/
+
+- name: get lets encrypt certificates
+  become: true
+  vars:
+    prefix: "--domain "
+    domainpart: "{{ [prefix] | product(domains) | map('join') | join(' ') }}"
+  shell:
+    cmd: docker run --rm --name certbot -v /secrets/certbot:/etc/letsencrypt -v /data/certbot/logs:/var/log -p 80:80 certbot/certbot:latest certonly --standalone --agree-tos --renew-by-default --email {{ email }} {{ domainpart }} --non-interactive
+    chdir: /home/pi/git
+
+- name: get nginx configuration
+  become: false
+  shell:
+    cmd: curl https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > /home/pi/git/options-ssl-nginx.conf
+
+- name: get dhparam
+  become: false
+  shell:
+    cmd: curl https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > /home/pi/git/dhparams.pem

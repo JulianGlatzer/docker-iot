@@ -2,28 +2,6 @@
   become: yes
   roles:
     - { role: docker, tags: docker }
-
-  tasks:
-  - name: git clone
-    become: no
-    git:
-      dest: /home/pi/git
-      repo: git@github.com:JulianGlatzer/docker-iot.git
-      update: yes
-      version: master
-
-  - name: deploy secrets
-    ansible.builtin.copy:
-      src: ./secrets/
-      dest: /secrets/
-      owner: root
-      group: root
-      mode: '0700'
-
-  - name: stop docker
-    become: True
-    shell:
-      cmd: "docker-compose -f docker-compose.yml --env /secrets/env down"
-      chdir: /home/pi/git/
-
-
+    - { role: iot, tags: iot }
+    - { role: letsencrypt, tags: letsencrypt }
+  

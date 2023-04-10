@@ -1,0 +1,5 @@
+domains:
+  - iot.glatzer.eu
+  - mqtt.iot.glatzer.eu
+  - grafana.iot.glatzer.eu
+  - influxdb.iot.glatzer.eu
