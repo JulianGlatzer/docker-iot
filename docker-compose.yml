@@ -55,7 +55,7 @@ services:
 
   grafana:
     container_name: grafana
-    image: grafana/grafana:master
+    image: grafana/grafana:latest
     restart: unless-stopped
     hostname: grafana.iot.glatzer.eu
     ports:
