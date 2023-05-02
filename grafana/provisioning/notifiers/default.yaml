@@ -1,0 +1,13 @@
+notifiers:
+  - name: e-mail-notifier
+    type: email
+    uid: emailnotifier
+    ord_id: 1
+    #org_name: jg
+    is_default: true
+    send_reminder: true
+    frequency: 1h
+    disable_resolve_message: false
+    settings:
+      addresses: ${GF_NOTIFICATION_EMAIL}
+      singleEmail: false

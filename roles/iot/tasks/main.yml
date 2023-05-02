@@ -14,6 +14,13 @@
     group: pi
     mode: '0700'
 
+- name: deploy secrets
+  file:
+    path: /secrets/mosquitto_passwd
+    owner: 1883
+    group: 1883
+    mode: '0700'
+
 - name: create /data mountpoint
   file:
      path: "/data"
@@ -62,8 +69,8 @@
      path: "/data/grafana"
      state: directory
      mode: "744"
-     owner: root
-     group: root
+     owner: 472
+     group: 472
 
 - name: nfs package present
   apt:

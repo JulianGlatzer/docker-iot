@@ -35,7 +35,7 @@
     prefix: "--domain "
     domainpart: "{{ [prefix] | product(domains) | map('join') | join(' ') }}"
   shell:
-    cmd: docker run --rm --name certbot -v /secrets/certbot:/etc/letsencrypt -v /data/certbot/logs:/var/log -p 80:80 certbot/certbot:latest certonly --standalone --agree-tos --renew-by-default --email {{ email }} {{ domainpart }} --non-interactive --test-cert
+    cmd: docker run --rm --name certbot -v /secrets/certbot:/etc/letsencrypt -v /data/certbot/logs:/var/log -p 80:80 certbot/certbot:latest certonly --standalone --agree-tos --keep-until-expiring --email {{ email }} {{ domainpart }} --non-interactive #--test-cert
     chdir: /home/pi/git
 
 - name: change permissions of certicate files

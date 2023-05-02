@@ -1,0 +1,17 @@
+apiVersion: 1
+datasources:
+- orgId: 1
+  version: 2
+  name: InfluxDB
+  type: influxdb
+  access: proxy
+  url: http://influxdb.iot.glatzer.eu:8086
+  basicAuth: false
+  isDefault: true
+  jsonData:
+    defaultBucket: sensordata
+    httpMode: POST
+    organization: jg
+    version: Flux
+  secureJsonData:
+    token: ${INFLUXDB_ADMIN_TOKEN}

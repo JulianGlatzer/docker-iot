@@ -58,9 +58,9 @@ services:
     image: grafana/grafana:latest
     restart: unless-stopped
     hostname: grafana.iot.glatzer.eu
-    ports:
-      - "3000:3000"
     volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       - /data/grafana:/var/lib/grafana:rw
     depends_on:
       - influxdb
@@ -75,6 +75,12 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
       - GF_SERVER_DOMAIN=iot.glatzer.eu
       - GF_SERVER_ROOT_URL=https://iot.glatzer.eu/
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST}
+      - GF_SMTP_USER=${SMTP_USER}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+      - GF_SMTP_FROM_NAME=Grafana
     networks:
       iotnet:    
         aliases:
