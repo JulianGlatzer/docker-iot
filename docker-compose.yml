@@ -93,7 +93,7 @@ services:
      - cert_key
      - mosquitto_passwd
     volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:rw
       - ./dhparams.pem:/etc/letsencrypt/dhparams.pem:ro
       - /data/mqtt/log:/mosquitto/log:rw
       - /data/mqtt/data:/mosquitto/data:rw

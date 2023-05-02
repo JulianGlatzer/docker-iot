@@ -20,3 +20,17 @@
     state: present
     line: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
     regexp: "^github\\.com"
+
+- name: create docker group
+  group:
+    name: docker
+
+- name: adding existing user '{{ user }}' to group docker
+  become: yes
+  user:
+    name: '{{ user }}'
+    groups: docker
+    append: yes
+
+- name: reset ssh connection to allow user changes to affect ansible user
+  meta: reset_connection

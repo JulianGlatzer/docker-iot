@@ -10,55 +10,46 @@
   copy:
     src: ./secrets/
     dest: /secrets/
-    owner: root
-    group: root
+    owner: pi
+    group: pi
     mode: '0700'
-
-- name: nfs package present
-  apt:
-    name:
-    - nfs-common
-    state: present
-
-- name: check if /data exists
-  local_action: stat path=/data
-  register: data_dir
-  become: no
 
 - name: create /data mountpoint
   file:
      path: "/data"
      state: directory
      mode: "777"
-     owner: root
-     group: root
-  when: not data_dir.stat.exists
+     owner: pi
+     group: pi
 
-- name: mount /data network share
-  ansible.posix.mount:
-    src: "192.168.1.95:/data/iot.glatzer.eu/"
-    path: "/data"
-    fstype: nfs
-    opts: rw,sync,hard
-    state: mounted
+- name: create mosquitto group
+  group:
+    name: mosquitto
+    gid: 1883
+
+- name: create mosquitto user
+  user:
+    name: mosquitto
+    uid: 1883
+    group: mosquitto
+    shell: /usr/sbin/nologin
+    create_home: false
 
 - name: create /data/mqtt directories
   become: yes
-  become_user: pi
+  become_user: mosquitto
   file:
      path: "{{ item }}"
      state: directory
      mode: "744"
-     owner: pi
-     group: pi
+     owner: mosquitto
+     group: mosquitto
   with_items:
     - /data/mqtt
     - /data/mqtt/data
     - /data/mqtt/log
 
 - name: create /data/influxdb directories
-  become: yes
-  become_user: pi
   file:
      path: "/data/influxdb"
      state: directory
@@ -67,11 +58,16 @@
      group: pi
 
 - name: create /data/grafana directories
-  become: yes
-  become_user: pi
   file:
      path: "/data/grafana"
      state: directory
      mode: "744"
-     owner: pi
-     group: pi
+     owner: root
+     group: root
+
+- name: nfs package present
+  apt:
+    name:
+    - nfs-common
+    state: present
+

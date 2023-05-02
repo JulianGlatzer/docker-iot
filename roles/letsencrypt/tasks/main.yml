@@ -1,25 +1,47 @@
 - name: create /data/certbot
+  become: true
+  become_user: pi
   file:
      path: "/data/certbot/logs"
      state: directory
      mode: "777"
-     owner: nobody
-     group: nogroup
+     owner: pi
+     group: pi
+
+- name: allow docker to bind to privileged ports
+  become: true
+  shell:
+    cmd: "setcap CAP_NET_BIND_SERVICE=+eip /usr/bin/docker"
 
 - name: stop docker
-  become: True
+  become: true
+  become_user: pi
   shell:
     cmd: "docker-compose -f docker-compose.yml --env /secrets/env down"
     chdir: /home/pi/git/
 
+- name: remove directories if created by docker
+  become: true
+  ignore_errors: true
+  shell:
+    cmd: "rmdir /secrets/certbot/live/iot.glatzer.eu/chain.pem/ /secrets/certbot/live/iot.glatzer.eu/fullchain.pem/ /secrets/certbot/live/iot.glatzer.eu/privkey.pem/"
+    chdir: /home/pi/git/
+    warn: false
+
 - name: get lets encrypt certificates
   become: true
+  become_user: pi
   vars:
     prefix: "--domain "
     domainpart: "{{ [prefix] | product(domains) | map('join') | join(' ') }}"
   shell:
-    cmd: docker run --rm --name certbot -v /secrets/certbot:/etc/letsencrypt -v /data/certbot/logs:/var/log -p 80:80 certbot/certbot:latest certonly --standalone --agree-tos --renew-by-default --email {{ email }} {{ domainpart }} --non-interactive
+    cmd: docker run --rm --name certbot -v /secrets/certbot:/etc/letsencrypt -v /data/certbot/logs:/var/log -p 80:80 certbot/certbot:latest certonly --standalone --agree-tos --renew-by-default --email {{ email }} {{ domainpart }} --non-interactive --test-cert
     chdir: /home/pi/git
+
+- name: change permissions of certicate files
+  become: true
+  shell:
+    cmd: chmod -R 744 /secrets/certbot/archive/iot.glatzer.eu/*
 
 - name: get nginx configuration
   become: false
