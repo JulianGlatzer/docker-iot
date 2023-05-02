@@ -32,7 +32,7 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - /data/influxdb:/var/lib/influxdb:rw
+      - /data/influxdb:/var/lib/influxdb2:rw
     secrets:
      - cert_file
      - cert_key
