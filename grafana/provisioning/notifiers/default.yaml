@@ -9,5 +9,5 @@ notifiers:
     frequency: 1h
     disable_resolve_message: false
     settings:
-      addresses: ${GF_NOTIFICATION_EMAIL}
+      addresses: $GF_NOTIFICATION_EMAIL
       singleEmail: false

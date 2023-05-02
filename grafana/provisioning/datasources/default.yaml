@@ -14,4 +14,4 @@ datasources:
     organization: jg
     version: Flux
   secureJsonData:
-    token: ${INFLUXDB_ADMIN_TOKEN}
+    token: $INFLUXDB_ADMIN_TOKEN
