@@ -1,12 +1,12 @@
 apiVersion: 1
 
 providers:
-  - name: Heizung # A uniquely identifiable name for the provider
+  - name: HeizungDashboard # A uniquely identifiable name for the provider
     folder: Heizung # The folder where to place the dashboards
     type: file
     options:
       path: /var/lib/grafana/dashboards/dashboard_heating.json
-  - name: Briefkasten
+  - name: BriefkastenDashboard
     folder: Briefkasten
     type: file
     options:

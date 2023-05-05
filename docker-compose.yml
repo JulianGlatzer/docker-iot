@@ -87,6 +87,7 @@ services:
       - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
       - GF_SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
       - GF_SMTP_FROM_NAME=Grafana
+      - GF_NOTIFICATION_EMAIL=${GF_NOTIFICATION_EMAIL}
     networks:
       iotnet:    
         aliases:
