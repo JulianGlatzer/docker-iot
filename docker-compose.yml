@@ -59,6 +59,25 @@ services:
         aliases:
           - influxdb.iot.glatzer.eu
 
+  telegraf:
+    container_name: telegraf
+    image: telegraf
+    restart: unless-stopped
+    hostname: telegraf.iot.glatzer.eu
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+    environment:
+      - TELEGRAF_INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - TELEGRAF_MQTT_USER=${TELEGRAF_MQTT_USER}
+      - TELEGRAF_MQTT_PASSWORD=${TELEGRAF_MQTT_PASSWORD}
+    depends_on:
+      - influxdb
+      - mqtt
+    networks:
+      iotnet:
+        aliases:
+          - telegraf.iot.glatzer.eu
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest

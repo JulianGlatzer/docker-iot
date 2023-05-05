@@ -69,8 +69,8 @@
      path: "/data/grafana"
      state: directory
      mode: "744"
-     owner: 472
-     group: 472
+     owner: "472"
+     group: "472"
 
 - name: nfs package present
   apt:
