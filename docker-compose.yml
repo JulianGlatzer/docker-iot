@@ -93,7 +93,7 @@ services:
      - cert_file
      - cert_key
     environment:
-      - GF_SERVER_PROTOCOL=https
+      - GF_SERVER_PROTOCOL=http
       - GF_SERVER_CERT_FILE=/run/secrets/cert_file
       - GF_SERVER_CERT_KEY=/run/secrets/cert_key
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
@@ -121,10 +121,10 @@ services:
       - "1883:1883"
       - "8883:8883"
     secrets:
-     - cert_file
      - cert_key
      - mosquitto_passwd
     volumes:
+      - /secrets/certbot/live/iot.glatzer.eu/fullchain.pem:/mosquitto/secrets/fullchain.pem:ro
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:rw
       - ./dhparams.pem:/etc/letsencrypt/dhparams.pem:ro
       - /data/mqtt/log:/mosquitto/log:rw
