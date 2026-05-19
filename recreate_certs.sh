@@ -1,5 +1,5 @@
 export CERTBOTDIR=/data/certbot
-. ${PWD}/.env \
+. /secrets/.env \
     && echo "starting nginx on port 81" \
     && docker run --name nginx-letsencrypt --rm -v ${CERTBOTDIR}/www:/var/www/certbot:ro -v ${PWD}/nginxletsencrypt.conf:/etc/nginx/conf.d/default.conf:ro -d -p 81:81 nginx:1.15-alpine  \
     && echo "nginx started, now starting certbot" \
