@@ -10,3 +10,19 @@ Docker compose environment for IOT on Raspberry Pi
 
 ## Ansible
  * run ./run.sh
+
+## Containers
+
+| Container | Purpose |
+|---|---|
+| nginx | HTTPS proxy for Grafana |
+| influxdb | InfluxDB 2 (org `jg`, bucket `sensordata`) |
+| telegraf | MQTT → InfluxDB |
+| grafana | Dashboards, data sources InfluxDB and MariaDB |
+| mqtt | Mosquitto |
+| uptime-kuma | Uptime monitoring |
+| mariadb | MariaDB 11.4, database `altherma4` (only on `127.0.0.1:3306`) |
+| altherma4 | Daikin Altherma 4: reads Modbus TCP → MariaDB + InfluxDB, alarms via Telegram/e-mail, weekly report |
+
+Setting up the Altherma containers (new `.env` variables, Grafana queries):
+see [altherma4/README.md](altherma4/README.md).

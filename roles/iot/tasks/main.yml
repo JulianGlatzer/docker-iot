@@ -64,6 +64,14 @@
      owner: pi
      group: pi
 
+- name: create /data/mariadb directory
+  file:
+     path: "/data/mariadb"
+     state: directory
+     mode: "750"
+     owner: "999"
+     group: "999"
+
 - name: create /data/grafana directories
   file:
      path: "/data/grafana"

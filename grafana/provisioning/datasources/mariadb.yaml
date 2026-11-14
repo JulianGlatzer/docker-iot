@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: MariaDB Altherma
+    type: mysql
+    uid: mariadb-altherma4
+    access: proxy
+    url: mariadb.iot.glatzer.eu:3306
+    user: grafana
+    jsonData:
+      database: altherma4
+      maxOpenConns: 5
+    secureJsonData:
+      password: "${MARIADB_GRAFANA_PASSWORD}"
+    editable: false

@@ -3,3 +3,8 @@ mosquitto_passwd
 info.txt
 cmd_influxdb.txt
 *~
+# local credentials, never commit
+secrets/
+secrets.py
+*.key
+privkey*.pem

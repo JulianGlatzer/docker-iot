@@ -102,6 +102,7 @@ services:
       - GF_TELEGRAM_BOT_TOKEN=${GF_TELEGRAM_BOT_TOKEN}
       - GF_TELEGRAM_CHAT_ID=${GF_TELEGRAM_CHAT_ID}
       - INFLUXDB_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - MARIADB_GRAFANA_PASSWORD=${MARIADB_GRAFANA_PASSWORD}
     networks:
       iotnet:    
         aliases:
@@ -139,12 +140,104 @@ services:
       - "3001:3001"
     volumes:
       - /data/uptime-kuma:/app/data
-    restart: unless-stopped
     networks:
       iotnet:
         aliases:
           - update-kuma.iot.glatzer.eu
 
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:11.4
+    restart: unless-stopped
+    hostname: mariadb.iot.glatzer.eu
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - /data/mariadb:/var/lib/mysql:rw
+      - ./mariadb/initdb:/docker-entrypoint-initdb.d:ro
+    environment:
+      - TZ=Europe/Paris
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=altherma4
+      - MARIADB_USER=altherma4
+      - MARIADB_PASSWORD=${ALTHERMA_DB_PASSWORD}
+      - MARIADB_GRAFANA_PASSWORD=${MARIADB_GRAFANA_PASSWORD}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      iotnet:
+        aliases:
+          - mariadb.iot.glatzer.eu
+
+  # Daikin Altherma 4: read Modbus TCP (FC 0x01-0x04 only) -> MariaDB + InfluxDB 2
+  # Uses the InfluxDB admin token (like telegraf/grafana), but not the MariaDB root password.
+  altherma4:
+    container_name: altherma4
+    build: ./altherma4
+    image: altherma4-logger:latest
+    restart: unless-stopped
+    hostname: altherma4.iot.glatzer.eu
+    depends_on:
+      - mariadb
+      - influxdb
+    environment:
+      - TZ=Europe/Paris
+      - ALTHERMA_HOST=${ALTHERMA_HOST:?set ALTHERMA_HOST in .env}
+      - ALTHERMA_PORT=${ALTHERMA_PORT:-502}
+      - ALTHERMA_UNIT_ID=${ALTHERMA_UNIT_ID:-1}
+      - POLL_INTERVAL=${POLL_INTERVAL:-15}
+      - QUIET=1
+      - MYSQL_HOST=mariadb.iot.glatzer.eu
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=altherma4
+      - MYSQL_USER=altherma4
+      - MYSQL_PASSWORD=${ALTHERMA_DB_PASSWORD}
+      - INFLUXDB_URL=http://influxdb.iot.glatzer.eu:8086
+      - INFLUXDB_ORG=jg
+      - INFLUXDB_BUCKET=${ALTHERMA_INFLUXDB_BUCKET:-sensordata}
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - INFLUXDB_MEASUREMENT=altherma4
+      - TELEGRAM_BOT_TOKEN=${GF_TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${GF_TELEGRAM_CHAT_ID}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_SECURITY=${ALTHERMA_SMTP_SECURITY:-starttls}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MAIL_FROM=${SMTP_FROM_ADDRESS}
+      - MAIL_TO=${GF_NOTIFICATION_EMAIL}
+      - ALERT_NAME=Altherma 4
+      - ALERT_PRESSURE_MIN=${ALERT_PRESSURE_MIN:-0.9}
+      - ALERT_PRESSURE_DROP=${ALERT_PRESSURE_DROP:-0.2}
+      - ALERT_BUH_MIN=${ALERT_BUH_MIN:-10}
+      - ALERT_BUH_KWH_DAY=${ALERT_BUH_KWH_DAY:-2}
+      - ALERT_STARTS_PER_HOUR=${ALERT_STARTS_PER_HOUR:-3}
+      - ALERT_LWT_DEV=${ALERT_LWT_DEV:-5}
+      - ALERT_LWT_MIN=${ALERT_LWT_MIN:-30}
+      - ALERT_FLOW_MIN=${ALERT_FLOW_MIN:-3}
+      - ALERT_DEFROST_MAX_MIN=${ALERT_DEFROST_MAX_MIN:-15}
+      - ALERT_DEFROST_PER_HOUR=${ALERT_DEFROST_PER_HOUR:-2}
+      - ALERT_DB_MIN=${ALERT_DB_MIN:-30}
+      - SEC_SUPPLY_SOURCE=${SEC_SUPPLY_SOURCE:-}
+      - SEC_RETURN_SOURCE=${SEC_RETURN_SOURCE:-}
+      - SEC_SUPPLY_OFFSET=${SEC_SUPPLY_OFFSET:-0}
+      - SEC_RETURN_OFFSET=${SEC_RETURN_OFFSET:-0}
+      - ALERT_HYD_MIN=${ALERT_HYD_MIN:-60}
+      - HEARTBEAT_URL=${ALTHERMA_HEARTBEAT_URL:-}
+      - REPORT_WEEKDAY=${REPORT_WEEKDAY:-1}
+      - REPORT_HOUR=${REPORT_HOUR:-7}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      iotnet:
+        aliases:
+          - altherma4.iot.glatzer.eu
 
 secrets:
   cert_file:
