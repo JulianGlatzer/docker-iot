@@ -1379,11 +1379,11 @@ class AlertMonitor:
         "backup_heater": "Backup heater running", "short_cycling": "Compressor short cycling",
         "lwt_low": "Leaving water below setpoint", "flow": "Flow too low",
         "defrost_long": "Defrost takes long", "defrost_frequent": "Frequent defrosts",
-        "frost_protection": "Frost protection active", "disinfection": "Disinfection failed",
+        "frost_protection": "Frost protection active with cold water", "disinfection": "Disinfection failed",
         "sep_primary": "Separator: heat pump circulates more than the heating circuits",
         "sep_secondary": "Separator: heating circuits circulate more than the heat pump",
     }
-    CRITICAL = {"fault", "emergency", "offline", "frost_protection", "flow"}
+    CRITICAL = {"fault", "emergency", "offline", "flow"}
     FLOW_HOLD_S = 120        # flow must be too low for this long
     P_SAMPLE_S = 300         # sample spacing of the pressure window
 
@@ -1522,11 +1522,17 @@ class AlertMonitor:
             if a.alert_defrost_per_hour:
                 conds["defrost_frequent"] = (n_def > a.alert_defrost_per_hour, f"{n_def} defrosts in 60 min", 1, C)
 
-            # frost protection
+            # Frost protection (DI14 room, DI15 water pipe) is a normal protective
+            # function: the unit switches it on by itself below ~6 °C outdoor.
+            # Only report it (optional, ALERT_FROST=1) when the water is actually cold.
             fr, rf = m.get("d_frost_protection"), m.get("d_pipe_freeze")
-            if fr is not None or rf is not None:
+            if getattr(a, "alert_frost", False) and (fr is not None or rf is not None):
                 which = [n for n, v in (("room", fr), ("pipe", rf)) if v]
-                conds["frost_protection"] = (bool(which), "/".join(which) or None, C, C)
+                temps = [t for t in (m.get("t_lwt_buh"), m.get("t_return")) if t is not None]
+                cold = bool(temps) and min(temps) < getattr(a, "alert_frost_water_min", 10.0)
+                conds["frost_protection"] = (bool(which) and cold,
+                                             f"{'/'.join(which)}, water {min(temps):.1f} °C" if which and temps else None,
+                                             C, C)
 
             # disinfection failed (IR63 = 0)
             ds = m.get("disinfection_status")
@@ -1999,6 +2005,12 @@ def main() -> int:
                     help="alarm if a defrost lasts longer than X min, 0 = off (ALERT_DEFROST_MAX_MIN)")
     ap.add_argument("--alert-defrost-per-hour", type=float, default=fenv("ALERT_DEFROST_PER_HOUR", 2),
                     help="alarm on more defrosts per hour, 0 = off (ALERT_DEFROST_PER_HOUR, default 2)")
+    ap.add_argument("--alert-frost", action=argparse.BooleanOptionalAction,
+                    default=env_bool("ALERT_FROST", False),
+                    help="report frost protection, but only while leaving/return water is below "
+                         "--alert-frost-water-min (ALERT_FROST, default off)")
+    ap.add_argument("--alert-frost-water-min", type=float, default=fenv("ALERT_FROST_WATER_MIN", 10.0),
+                    help="water temperature in °C for the frost alarm (ALERT_FROST_WATER_MIN, default 10)")
     ap.add_argument("--alert-db-min", type=float, default=fenv("ALERT_DB_MIN", 30),
                     help="alarm if a database has not written for X min (ALERT_DB_MIN, default 30)")
     # hydraulic separator (secondary sensors)

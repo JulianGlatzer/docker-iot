@@ -92,7 +92,6 @@ operating data in the text. All thresholds are in `.env`; `0` disables an alarm.
 | 🔴 Emergency operation | DI24 active |
 | 🔴 No connection | heat pump unreachable for more than 5 min |
 | 🔴 Flow too low | < 3 l/min with the pump running, for more than 2 min |
-| 🔴 Frost protection active | DI14 (room) or DI15 (pipe) |
 | ⚠️ Water pressure low | < `ALERT_PRESSURE_MIN` |
 | ⚠️ Pressure drop | pressure falls by ≥ 0.2 bar within 24 h (compared at similar leaving water temperature) |
 | ⚠️ Backup heater running | relays on for more than 10 min (defrost excluded) |
@@ -101,6 +100,7 @@ operating data in the text. All thresholds are in `.env`; `0` disables an alarm.
 | ⚠️ Leaving water below setpoint | > 5 K below target, for more than 30 min (compressor on, no DHW/defrost) |
 | ⚠️ Defrost | longer than 15 min or more than 2 per hour |
 | ⚠️ Disinfection failed | IR63 = 0 |
+| ⚠️ Frost protection with cold water | off by default (`ALERT_FROST=1`): DI14/DI15 active **and** leaving or return water < 10 °C. Frost protection alone is normal below ~6 °C outdoor |
 | ⚠️ Database not writing | MariaDB or InfluxDB for more than 30 min, or buffer ≥ 80 % |
 | ⚠️ Separator: heat pump circulates more | supplies equal, heat pump return > secondary return + 1 K, for more than 60 min (secondary sensors only) |
 | ⚠️ Separator: heating circuits circulate more | secondary supply < heat pump leaving water − 1 K, returns equal, for more than 60 min (secondary sensors only) |

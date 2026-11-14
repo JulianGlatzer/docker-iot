@@ -1564,6 +1564,7 @@
         "w": 12,
         "h": 8
       },
+      "description": "Frost protection is normal below ~6 °C outdoor (pump/water heated at a reduced setpoint).",
       "targets": [
         {
           "refId": "A",
@@ -1604,6 +1605,22 @@
             "uid": "influxdb-sensordata"
           },
           "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_dhw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"DHW\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_frost_protection\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Frost protection room\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "G",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_pipe_freeze\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Frost protection pipe\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ],
       "fieldConfig": {
@@ -1675,6 +1692,58 @@
                       "1": {
                         "text": "defrost",
                         "color": "blue"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Frost protection room"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "off",
+                        "color": "transparent"
+                      },
+                      "1": {
+                        "text": "active",
+                        "color": "light-blue"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Frost protection pipe"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "off",
+                        "color": "transparent"
+                      },
+                      "1": {
+                        "text": "active",
+                        "color": "light-blue"
                       }
                     }
                   }
