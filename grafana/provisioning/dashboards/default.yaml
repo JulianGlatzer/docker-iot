@@ -11,3 +11,8 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards/dashboard_timelines.json
+  - name: Altherma4
+    folder: IoT
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/dashboard_altherma4.json
