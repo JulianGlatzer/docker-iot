@@ -1,0 +1,349 @@
+# Grafana alert rule provisioning
+# All rules share the same logic:
+#   Query the last 24h for a specific field. If the result is empty → ALERT.
+#
+# Interval: evaluated every 1h (3600s), for_duration: 0s means alert fires
+# immediately on the first evaluation that returns no data, no grace period.
+#
+# datasourceUid must match the uid in datasources/influxdb.yaml
+
+apiVersion: 1
+
+groups:
+
+  # ---------------------------------------------------------------------------
+  # electricity – ZLinky Zigbee energy meter
+  # ---------------------------------------------------------------------------
+  - name: electricity
+    orgId: 1
+    folder: IoT Alerts
+    interval: 1h
+    rules:
+
+      - uid: alert-elec-hchp
+        title: "electricity: HCHP no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No HCHP (peak hours index) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: HCHP
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "HCHP")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-elec-hchc
+        title: "electricity: HCHC no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No HCHC (off-peak hours index) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: HCHC
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "HCHC")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-elec-papp
+        title: "electricity: PAPP no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No PAPP (apparent power) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: PAPP
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "PAPP")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-elec-iinst1
+        title: "electricity: IINST1 no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No IINST1 (phase 1 current) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: IINST1
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "IINST1")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-elec-iinst2
+        title: "electricity: IINST2 no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No IINST2 (phase 2 current) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: IINST2
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "IINST2")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-elec-iinst3
+        title: "electricity: IINST3 no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No IINST3 (phase 3 current) received in the last 24 hours."
+        labels:
+          measurement: electricity
+          field: IINST3
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "IINST3")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+  # ---------------------------------------------------------------------------
+  # heating – DS18B20 temperature probes (Waschkueche)
+  # ---------------------------------------------------------------------------
+  - name: heating
+    orgId: 1
+    folder: IoT Alerts
+    interval: 1h
+    rules:
+
+      - uid: alert-heat-departure
+        title: "heating: departure_temperature no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No departure temperature received in the last 24 hours."
+        labels:
+          measurement: heating
+          field: departure_temperature
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "departure_temperature")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-heat-return
+        title: "heating: return_temperature no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No return temperature received in the last 24 hours."
+        labels:
+          measurement: heating
+          field: return_temperature
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "return_temperature")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+  # ---------------------------------------------------------------------------
+  # watermeter
+  # ---------------------------------------------------------------------------
+  - name: watermeter
+    orgId: 1
+    folder: IoT Alerts
+    interval: 1h
+    rules:
+
+      - uid: alert-water-value
+        title: "watermeter: value no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No watermeter reading received in the last 24 hours."
+        labels:
+          measurement: watermeter
+          field: value
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "value")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}
+
+      - uid: alert-water-rate
+        title: "watermeter: rate no data 24h"
+        condition: no_data_condition
+        for: 0s
+        annotations:
+          summary: "No watermeter flow rate received in the last 24 hours."
+        labels:
+          measurement: watermeter
+          field: rate
+        data:
+          - refId: A
+            datasourceUid: influxdb-sensordata
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            model:
+              query: |
+                from(bucket: "sensordata")
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "rate")
+                  |> last()
+          - refId: no_data_condition
+            datasourceUid: "-100"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator: {type: no_value, params: []}
+                  operator:  {type: and}
+                  query:     {params: [A]}
+                  reducer:   {type: last}

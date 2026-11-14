@@ -1,13 +1,13 @@
 apiVersion: 1
 
 providers:
-  - name: HeizungDashboard # A uniquely identifiable name for the provider
-    folder: Heizung # The folder where to place the dashboards
+  - name: LatestValues
+    folder: IoT
     type: file
     options:
-      path: /var/lib/grafana/dashboards/dashboard_heating.json
-  - name: BriefkastenDashboard
-    folder: Briefkasten
+      path: /var/lib/grafana/dashboards/dashboard_latest.json
+  - name: Timelines
+    folder: IoT
     type: file
     options:
-      path: /var/lib/grafana/dashboards/dashboard_letterbox.json
+      path: /var/lib/grafana/dashboards/dashboard_timelines.json

@@ -1,0 +1,42 @@
+# Grafana contact point provisioning
+# Fill in your credentials in the .env file and reference them here,
+# or edit the secureSettings values directly.
+#
+# Telegram:  create a bot via @BotFather, get the token and your chat_id
+# Email:     set SMTP settings in grafana.ini / GF_SMTP_* env vars
+# WhatsApp:  uses CallMeBot (free, no app needed) – register at callmebot.com
+
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: iot-alerts
+    receivers:
+
+      # -----------------------------------------------------------------------
+      # Telegram
+      # -----------------------------------------------------------------------
+      - uid: telegram-receiver
+        type: telegram
+        settings:
+          bottoken: ${GF_TELEGRAM_BOT_TOKEN}
+          chatid: |
+            ${GF_TELEGRAM_CHAT_ID}
+          message: |
+            IoT Alert: {{ .CommonLabels.alertname }}
+            {{ range .Alerts }}
+            • {{ .Labels.measurement }}/{{ .Labels.field }} – {{ .Annotations.summary }}
+            {{ end }}
+
+      # -----------------------------------------------------------------------
+      # Email
+      # -----------------------------------------------------------------------
+      - uid: email-receiver
+        type: email
+        settings:
+          addresses: "${GF_NOTIFICATION_EMAIL}"
+          subject: "IoT Alert: {{ .CommonLabels.alertname }}"
+
+policies:
+  - orgId: 1
+    receiver: iot-alerts   # default: all alerts go to all channels
