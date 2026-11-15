@@ -93,7 +93,7 @@ operating data in the text. All thresholds are in `.env`; `0` disables an alarm.
 | 🔴 No connection | heat pump unreachable for more than 5 min |
 | 🔴 Flow too low | < 3 l/min with the pump running, for more than 2 min |
 | ⚠️ Water pressure low | < `ALERT_PRESSURE_MIN` |
-| ⚠️ Pressure drop | pressure falls by ≥ 0.2 bar within 24 h (compared at similar leaving water temperature) |
+| ⚠️ Pressure drop | pressure falls by ≥ 0.2 bar within 24 h, compared only at the same pump speed (± 5 %), because the reading includes the pump head (~0.6 bar between 30 % and 85 %) |
 | ⚠️ Backup heater running | relays on for more than 10 min (defrost excluded) |
 | ⚠️ Backup heater daily energy | once per day, as soon as ≥ 2 kWh |
 | ⚠️ Compressor short cycling | more than 3 starts in 60 min |

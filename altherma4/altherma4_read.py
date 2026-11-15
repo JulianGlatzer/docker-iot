@@ -1398,9 +1398,10 @@ class AlertMonitor:
         self.comp_starts: deque[float] = deque()            # times of compressor starts
         self.defrost_starts: deque[float] = deque()
         self.prev_comp = self.prev_defrost = None
-        self.p_window: deque[tuple[float, float, float | None]] = deque()  # (t, p, LWT)
+        self.p_window: deque[tuple[float, float, float]] = deque()  # (t, p, pump speed %)
         self.p_last_add = 0.0
         self.p_recent: deque[float] = deque(maxlen=8)        # smoothing of the current pressure
+        self.p_band: deque[tuple[float, float]] = deque(maxlen=4)  # recent (pump %, p) for the drop check
         self.buh_day, self.buh_day_kwh, self.buh_day_sent = None, 0.0, False
 
     # -- helpers ------------------------------------------------------------
@@ -1444,28 +1445,42 @@ class AlertMonitor:
             em = m.get("d_emergency")
             conds["emergency"] = (None if em is None else bool(em), None, C, C)
 
-            # water pressure: threshold + slow drop (24 h window, temperature-corrected)
-            p, lwt = m.get("water_pressure"), m.get("t_lwt_buh")
+            # water pressure: threshold + slow drop (24 h window)
+            # The sensor sits on the pressure side of the circulation pump: the reading
+            # rises by ~0.6 bar between 30 % and 85 % pump speed, while the water
+            # temperature hardly matters. The drop check therefore only compares
+            # readings taken at the same pump speed (± ALERT_PRESSURE_PUMP_TOL %).
+            p, pump = m.get("water_pressure"), m.get("pump_speed")
             if p is not None:
                 self.p_recent.append(p)
                 p_now = sum(self.p_recent) / len(self.p_recent)
                 if a.alert_pressure_min is not None:
-                    conds["pressure"] = (p_now < a.alert_pressure_min, f"{p_now:.2f} bar", C, C)
-                if a.alert_pressure_drop and a.alert_pressure_drop > 0:
+                    # hysteresis: clear only 0.1 bar above the threshold
+                    was = self.states.get("pressure")
+                    limit = a.alert_pressure_min + (0.1 if was and was.active else 0.0)
+                    conds["pressure"] = (p_now < limit, f"{p_now:.2f} bar", C, C)
+                if a.alert_pressure_drop and a.alert_pressure_drop > 0 and pump is not None:
+                    tol = getattr(a, "alert_pressure_pump_tol", 5.0)
                     win = a.alert_pressure_drop_hours * 3600
+                    # current value: mean of the last readings at (about) this pump speed
+                    self.p_band.append((pump, p))
+                    cur = [pp for (pu, pp) in self.p_band if abs(pu - pump) <= tol]
+                    p_cur = sum(cur) / len(cur)
                     if now - self.p_last_add >= self.P_SAMPLE_S:
-                        self.p_window.append((now, p_now, lwt))
+                        self.p_window.append((now, p, pump))
                         self.p_last_add = now
                     while self.p_window and now - self.p_window[0][0] > win:
                         self.p_window.popleft()
-                    ref = [pp for (_t, pp, tv) in self.p_window
-                           if lwt is None or tv is None or abs(tv - lwt) <= 3.0]
-                    covered = self.p_window and now - self.p_window[0][0] >= win * 0.5
-                    if ref and covered:
-                        drop = max(ref) - p_now
-                        conds["pressure_drop"] = (drop >= a.alert_pressure_drop,
+                    ref = [(t, pp) for (t, pp, pu) in self.p_window if abs(pu - pump) <= tol]
+                    # need several comparable readings that reach back at least half the window
+                    if len(ref) >= 3 and now - ref[0][0] >= win * 0.5:
+                        drop = max(pp for _t, pp in ref) - p_cur
+                        # hysteresis: once triggered, clear only below half the threshold
+                        was = self.states.get("pressure_drop")
+                        limit = a.alert_pressure_drop / 2 if was and was.active else a.alert_pressure_drop
+                        conds["pressure_drop"] = (drop >= limit,
                                                 f"−{drop:.2f} bar in {a.alert_pressure_drop_hours:g} h "
-                                                f"(now {p_now:.2f} bar)", C, C)
+                                                f"at pump {pump:.0f} % (now {p_cur:.2f} bar)", C, C)
 
             # backup heater runs longer than X min (defrost excluded)
             relays = c.get("buh_relays_on")
@@ -1988,6 +2003,9 @@ def main() -> int:
                     help="alarm on a pressure drop ≥ X bar within the window, 0 = off (ALERT_PRESSURE_DROP, default 0.2)")
     ap.add_argument("--alert-pressure-drop-hours", type=float, default=fenv("ALERT_PRESSURE_DROP_HOURS", 24),
                     help="window for the pressure drop in h (ALERT_PRESSURE_DROP_HOURS, default 24)")
+    ap.add_argument("--alert-pressure-pump-tol", type=float, default=fenv("ALERT_PRESSURE_PUMP_TOL", 5),
+                    help="pressure drop: only compare readings within ± X %% pump speed "
+                         "(ALERT_PRESSURE_PUMP_TOL, default 5)")
     ap.add_argument("--alert-buh-min", type=float, default=fenv("ALERT_BUH_MIN", 10),
                     help="alarm if the backup heater runs longer than X min, 0 = off (ALERT_BUH_MIN, default 10)")
     ap.add_argument("--alert-buh-kwh-day", type=float, default=fenv("ALERT_BUH_KWH_DAY", 2),
