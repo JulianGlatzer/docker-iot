@@ -83,6 +83,7 @@ import queue
 import signal
 import smtplib
 import socket
+import statistics
 import ssl
 import struct
 import sys
@@ -1386,6 +1387,7 @@ class AlertMonitor:
     CRITICAL = {"fault", "emergency", "offline", "flow"}
     FLOW_HOLD_S = 120        # flow must be too low for this long
     P_SAMPLE_S = 300         # sample spacing of the pressure window
+    P_RECENT_S = 3 * 3600    # "now" = median of the last 3 h at minimum pump speed
 
     def __init__(self, notifier: Notifier, a):
         self.n, self.a = notifier, a
@@ -1401,7 +1403,6 @@ class AlertMonitor:
         self.p_window: deque[tuple[float, float, float]] = deque()  # (t, p, pump speed %)
         self.p_last_add = 0.0
         self.p_recent: deque[float] = deque(maxlen=8)        # smoothing of the current pressure
-        self.p_band: deque[tuple[float, float]] = deque(maxlen=4)  # recent (pump %, p) for the drop check
         self.buh_day, self.buh_day_kwh, self.buh_day_sent = None, 0.0, False
 
     # -- helpers ------------------------------------------------------------
@@ -1460,27 +1461,34 @@ class AlertMonitor:
                     limit = a.alert_pressure_min + (0.1 if was and was.active else 0.0)
                     conds["pressure"] = (p_now < limit, f"{p_now:.2f} bar", C, C)
                 if a.alert_pressure_drop and a.alert_pressure_drop > 0 and pump is not None:
+                    # Robust against fluctuations: only readings at the LOWEST pump speed of
+                    # the window are used (closest to the static pressure), the median of the
+                    # oldest quarter of the window is compared with the median of the last
+                    # 3 h, and the drop must persist for ALERT_PRESSURE_DROP_HOLD_H hours.
                     tol = getattr(a, "alert_pressure_pump_tol", 5.0)
                     win = a.alert_pressure_drop_hours * 3600
-                    # current value: mean of the last readings at (about) this pump speed
-                    self.p_band.append((pump, p))
-                    cur = [pp for (pu, pp) in self.p_band if abs(pu - pump) <= tol]
-                    p_cur = sum(cur) / len(cur)
                     if now - self.p_last_add >= self.P_SAMPLE_S:
                         self.p_window.append((now, p, pump))
                         self.p_last_add = now
                     while self.p_window and now - self.p_window[0][0] > win:
                         self.p_window.popleft()
-                    ref = [(t, pp) for (t, pp, pu) in self.p_window if abs(pu - pump) <= tol]
-                    # need several comparable readings that reach back at least half the window
-                    if len(ref) >= 3 and now - ref[0][0] >= win * 0.5:
-                        drop = max(pp for _t, pp in ref) - p_cur
-                        # hysteresis: once triggered, clear only below half the threshold
-                        was = self.states.get("pressure_drop")
-                        limit = a.alert_pressure_drop / 2 if was and was.active else a.alert_pressure_drop
-                        conds["pressure_drop"] = (drop >= limit,
-                                                f"−{drop:.2f} bar in {a.alert_pressure_drop_hours:g} h "
-                                                f"at pump {pump:.0f} % (now {p_cur:.2f} bar)", C, C)
+                    if self.p_window and now - self.p_window[0][0] >= win * 0.9:
+                        base_pump = min(pu for _t, _p, pu in self.p_window)
+                        low = [(t, pp) for (t, pp, pu) in self.p_window if pu <= base_pump + tol]
+                        old = [pp for t, pp in low if t <= now - win * 0.75]
+                        new = [pp for t, pp in low if t >= now - self.P_RECENT_S]
+                        if len(old) >= 4 and len(new) >= 4:
+                            drop = statistics.median(old) - statistics.median(new)
+                            was = self.states.get("pressure_drop")
+                            active = bool(was and was.active)
+                            # hysteresis: once triggered, clear only below half the threshold
+                            limit = a.alert_pressure_drop / 2 if active else a.alert_pressure_drop
+                            dur = self._held("pressure_drop", drop >= limit, now)
+                            hold = getattr(a, "alert_pressure_drop_hold_h", 2.0) * 3600
+                            conds["pressure_drop"] = (
+                                drop >= limit and (active or dur >= hold),
+                                f"−{drop:.2f} bar in {a.alert_pressure_drop_hours:g} h at pump ≤ "
+                                f"{base_pump + tol:.0f} % (median now {statistics.median(new):.2f} bar)", 1, 1)
 
             # backup heater runs longer than X min (defrost excluded)
             relays = c.get("buh_relays_on")
@@ -1999,13 +2007,16 @@ def main() -> int:
     def fenv(name, default=None):
         v = env(name)
         return float(v) if v is not None else default
-    ap.add_argument("--alert-pressure-drop", type=float, default=fenv("ALERT_PRESSURE_DROP", 0.2),
-                    help="alarm on a pressure drop ≥ X bar within the window, 0 = off (ALERT_PRESSURE_DROP, default 0.2)")
+    ap.add_argument("--alert-pressure-drop", type=float, default=fenv("ALERT_PRESSURE_DROP", 0.3),
+                    help="alarm on a pressure drop ≥ X bar within the window, 0 = off (ALERT_PRESSURE_DROP, default 0.3)")
     ap.add_argument("--alert-pressure-drop-hours", type=float, default=fenv("ALERT_PRESSURE_DROP_HOURS", 24),
                     help="window for the pressure drop in h (ALERT_PRESSURE_DROP_HOURS, default 24)")
     ap.add_argument("--alert-pressure-pump-tol", type=float, default=fenv("ALERT_PRESSURE_PUMP_TOL", 5),
-                    help="pressure drop: only compare readings within ± X %% pump speed "
+                    help="pressure drop: only use readings within X %% of the lowest pump speed "
                          "(ALERT_PRESSURE_PUMP_TOL, default 5)")
+    ap.add_argument("--alert-pressure-drop-hold-h", type=float, default=fenv("ALERT_PRESSURE_DROP_HOLD_H", 2),
+                    help="pressure drop must persist this many hours before alarming "
+                         "(ALERT_PRESSURE_DROP_HOLD_H, default 2)")
     ap.add_argument("--alert-buh-min", type=float, default=fenv("ALERT_BUH_MIN", 10),
                     help="alarm if the backup heater runs longer than X min, 0 = off (ALERT_BUH_MIN, default 10)")
     ap.add_argument("--alert-buh-kwh-day", type=float, default=fenv("ALERT_BUH_KWH_DAY", 2),

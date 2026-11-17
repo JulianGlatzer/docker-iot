@@ -207,77 +207,6 @@ groups:
                   reducer:   {type: last}
 
   # ---------------------------------------------------------------------------
-  # heating – DS18B20 temperature probes (Waschkueche)
-  # ---------------------------------------------------------------------------
-  - name: heating
-    orgId: 1
-    folder: IoT Alerts
-    interval: 1h
-    rules:
-
-      - uid: alert-heat-departure
-        title: "heating: departure_temperature no data 24h"
-        condition: no_data_condition
-        for: 0s
-        annotations:
-          summary: "No departure temperature received in the last 24 hours."
-        labels:
-          measurement: heating
-          field: departure_temperature
-        data:
-          - refId: A
-            datasourceUid: influxdb-sensordata
-            relativeTimeRange:
-              from: 86400
-              to: 0
-            model:
-              query: |
-                from(bucket: "sensordata")
-                  |> range(start: -24h)
-                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "departure_temperature")
-                  |> last()
-          - refId: no_data_condition
-            datasourceUid: "-100"
-            model:
-              type: classic_conditions
-              conditions:
-                - evaluator: {type: no_value, params: []}
-                  operator:  {type: and}
-                  query:     {params: [A]}
-                  reducer:   {type: last}
-
-      - uid: alert-heat-return
-        title: "heating: return_temperature no data 24h"
-        condition: no_data_condition
-        for: 0s
-        annotations:
-          summary: "No return temperature received in the last 24 hours."
-        labels:
-          measurement: heating
-          field: return_temperature
-        data:
-          - refId: A
-            datasourceUid: influxdb-sensordata
-            relativeTimeRange:
-              from: 86400
-              to: 0
-            model:
-              query: |
-                from(bucket: "sensordata")
-                  |> range(start: -24h)
-                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "return_temperature")
-                  |> last()
-          - refId: no_data_condition
-            datasourceUid: "-100"
-            model:
-              type: classic_conditions
-              conditions:
-                - evaluator: {type: no_value, params: []}
-                  operator:  {type: and}
-                  query:     {params: [A]}
-                  reducer:   {type: last}
-
-  # ---------------------------------------------------------------------------
   # watermeter
   # ---------------------------------------------------------------------------
   - name: watermeter
@@ -347,3 +276,12 @@ groups:
                   operator:  {type: and}
                   query:     {params: [A]}
                   reducer:   {type: last}
+
+# Rules that were provisioned earlier and must be removed from Grafana.
+# (Deleting a rule from "groups" alone does not remove it from Grafana.)
+deleteRules:
+  # heating – DS18B20 probes (Waschkueche), hardware removed
+  - orgId: 1
+    uid: alert-heat-departure
+  - orgId: 1
+    uid: alert-heat-return
