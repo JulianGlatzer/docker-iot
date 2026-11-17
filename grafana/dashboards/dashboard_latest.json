@@ -4,7 +4,7 @@
   "title": "IoT \u2013 Latest values",
   "uid": "iot-latest",
   "schemaVersion": 38,
-  "version": 5,
+  "version": 6,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -124,113 +124,13 @@
       ]
     },
     {
-      "id": 2,
-      "title": "Heating \u2013 latest values",
-      "description": "One row per field. Red = last update older than 24 h.",
-      "type": "table",
-      "gridPos": {
-        "x": 0,
-        "y": 10,
-        "w": 24,
-        "h": 6
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-sensordata"
-      },
-      "options": {
-        "sortBy": [
-          {
-            "displayName": "Field",
-            "desc": false
-          }
-        ],
-        "footer": {
-          "show": false
-        }
-      },
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "field": "Field",
-              "value": "Value",
-              "timestamp": "Last seen"
-            },
-            "excludeByName": {},
-            "indexByName": {
-              "field": 0,
-              "value": 1,
-              "timestamp": 2
-            }
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "displayMode": "auto"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Last seen"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "dateTimeAsLocal"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": null
-                    },
-                    {
-                      "color": "transparent",
-                      "value": -86400000
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "refId": "heat",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-sensordata"
-          },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"heating\")\n  |> group(columns: [\"_field\"])\n  |> last()\n  |> map(fn: (r) => ({field: r._field, value: r._value, timestamp: r._time}))"
-        }
-      ]
-    },
-    {
       "id": 3,
       "title": "Room temperature \u2013 latest values",
       "description": "One row per device. Red = last update older than 24 h.",
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 10,
         "w": 12,
         "h": 10
       },
@@ -342,7 +242,7 @@
       "type": "table",
       "gridPos": {
         "x": 12,
-        "y": 16,
+        "y": 10,
         "w": 12,
         "h": 10
       },
@@ -492,7 +392,7 @@
       "type": "logs",
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 20,
         "w": 24,
         "h": 8
       },

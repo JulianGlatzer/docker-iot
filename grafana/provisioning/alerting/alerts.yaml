@@ -207,75 +207,80 @@ groups:
                   reducer:   {type: last}
 
   # ---------------------------------------------------------------------------
-  # watermeter
+  # watermeter – DISABLED: meter currently not connected.
+  # To re-enable: uncomment the group below AND remove the two watermeter
+  # entries from deleteRules at the end of this file.
   # ---------------------------------------------------------------------------
-  - name: watermeter
-    orgId: 1
-    folder: IoT Alerts
-    interval: 1h
-    rules:
-
-      - uid: alert-water-value
-        title: "watermeter: value no data 24h"
-        condition: no_data_condition
-        for: 0s
-        annotations:
-          summary: "No watermeter reading received in the last 24 hours."
-        labels:
-          measurement: watermeter
-          field: value
-        data:
-          - refId: A
-            datasourceUid: influxdb-sensordata
-            relativeTimeRange:
-              from: 86400
-              to: 0
-            model:
-              query: |
-                from(bucket: "sensordata")
-                  |> range(start: -24h)
-                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "value")
-                  |> last()
-          - refId: no_data_condition
-            datasourceUid: "-100"
-            model:
-              type: classic_conditions
-              conditions:
-                - evaluator: {type: no_value, params: []}
-                  operator:  {type: and}
-                  query:     {params: [A]}
-                  reducer:   {type: last}
-
-      - uid: alert-water-rate
-        title: "watermeter: rate no data 24h"
-        condition: no_data_condition
-        for: 0s
-        annotations:
-          summary: "No watermeter flow rate received in the last 24 hours."
-        labels:
-          measurement: watermeter
-          field: rate
-        data:
-          - refId: A
-            datasourceUid: influxdb-sensordata
-            relativeTimeRange:
-              from: 86400
-              to: 0
-            model:
-              query: |
-                from(bucket: "sensordata")
-                  |> range(start: -24h)
-                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "rate")
-                  |> last()
-          - refId: no_data_condition
-            datasourceUid: "-100"
-            model:
-              type: classic_conditions
-              conditions:
-                - evaluator: {type: no_value, params: []}
-                  operator:  {type: and}
-                  query:     {params: [A]}
-                  reducer:   {type: last}
+#  # ---------------------------------------------------------------------------
+#  # watermeter
+#  # ---------------------------------------------------------------------------
+#  - name: watermeter
+#    orgId: 1
+#    folder: IoT Alerts
+#    interval: 1h
+#    rules:
+#
+#      - uid: alert-water-value
+#        title: "watermeter: value no data 24h"
+#        condition: no_data_condition
+#        for: 0s
+#        annotations:
+#          summary: "No watermeter reading received in the last 24 hours."
+#        labels:
+#          measurement: watermeter
+#          field: value
+#        data:
+#          - refId: A
+#            datasourceUid: influxdb-sensordata
+#            relativeTimeRange:
+#              from: 86400
+#              to: 0
+#            model:
+#              query: |
+#                from(bucket: "sensordata")
+#                  |> range(start: -24h)
+#                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "value")
+#                  |> last()
+#          - refId: no_data_condition
+#            datasourceUid: "-100"
+#            model:
+#              type: classic_conditions
+#              conditions:
+#                - evaluator: {type: no_value, params: []}
+#                  operator:  {type: and}
+#                  query:     {params: [A]}
+#                  reducer:   {type: last}
+#
+#      - uid: alert-water-rate
+#        title: "watermeter: rate no data 24h"
+#        condition: no_data_condition
+#        for: 0s
+#        annotations:
+#          summary: "No watermeter flow rate received in the last 24 hours."
+#        labels:
+#          measurement: watermeter
+#          field: rate
+#        data:
+#          - refId: A
+#            datasourceUid: influxdb-sensordata
+#            relativeTimeRange:
+#              from: 86400
+#              to: 0
+#            model:
+#              query: |
+#                from(bucket: "sensordata")
+#                  |> range(start: -24h)
+#                  |> filter(fn: (r) => r._measurement == "watermeter" and r._field == "rate")
+#                  |> last()
+#          - refId: no_data_condition
+#            datasourceUid: "-100"
+#            model:
+#              type: classic_conditions
+#              conditions:
+#                - evaluator: {type: no_value, params: []}
+#                  operator:  {type: and}
+#                  query:     {params: [A]}
+#                  reducer:   {type: last}
 
 # Rules that were provisioned earlier and must be removed from Grafana.
 # (Deleting a rule from "groups" alone does not remove it from Grafana.)
@@ -285,3 +290,8 @@ deleteRules:
     uid: alert-heat-departure
   - orgId: 1
     uid: alert-heat-return
+  # watermeter – disabled while the meter is not connected (see above)
+  - orgId: 1
+    uid: alert-water-value
+  - orgId: 1
+    uid: alert-water-rate

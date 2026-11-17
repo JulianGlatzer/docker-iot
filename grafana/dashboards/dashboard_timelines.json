@@ -4,7 +4,7 @@
   "title": "IoT \u2013 Timelines",
   "uid": "iot-timelines",
   "schemaVersion": 38,
-  "version": 2,
+  "version": 3,
   "refresh": "1m",
   "time": {
     "from": "now-24h",
@@ -175,53 +175,11 @@
       ]
     },
     {
-      "id": 4,
-      "title": "Heating temperatures",
-      "type": "timeseries",
-      "gridPos": {
-        "x": 0,
-        "y": 16,
-        "w": 12,
-        "h": 8
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-sensordata"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "celsius",
-          "custom": {
-            "lineWidth": 2
-          }
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "refId": "departure",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-sensordata"
-          },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r._field == \"departure_temperature\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> set(key: \"_field\", value: \"departure_temperature\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
-        },
-        {
-          "refId": "return",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-sensordata"
-          },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r._field == \"return_temperature\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> set(key: \"_field\", value: \"return_temperature\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
-        }
-      ]
-    },
-    {
       "id": 5,
       "title": "Room temperature",
       "type": "timeseries",
       "gridPos": {
-        "x": 12,
+        "x": 0,
         "y": 16,
         "w": 12,
         "h": 8
@@ -255,8 +213,8 @@
       "title": "Room humidity & dew point",
       "type": "timeseries",
       "gridPos": {
-        "x": 0,
-        "y": 24,
+        "x": 12,
+        "y": 16,
         "w": 12,
         "h": 8
       },
@@ -314,9 +272,9 @@
       "title": "Water meter (volume & flow rate)",
       "type": "timeseries",
       "gridPos": {
-        "x": 12,
+        "x": 0,
         "y": 24,
-        "w": 12,
+        "w": 24,
         "h": 8
       },
       "datasource": {
