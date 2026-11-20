@@ -2432,12 +2432,12 @@
     {
       "id": 32,
       "type": "stat",
-      "title": "Demand main zone",
+      "title": "Unit operation",
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-sensordata"
       },
-      "description": "HR74 thermostat demand (read every 5 min).",
+      "description": "IR83: what the unit is doing right now.",
       "gridPos": {
         "x": 3,
         "y": 48,
@@ -2451,7 +2451,7 @@
             "type": "influxdb",
             "uid": "influxdb-sensordata"
           },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_main\")\n  |> last()\n  |> set(key: \"_field\", value: \"Demand main zone\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"unit_mode\")\n  |> last()\n  |> set(key: \"_field\", value: \"Unit operation\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ],
       "fieldConfig": {
@@ -2475,16 +2475,24 @@
               "type": "value",
               "options": {
                 "0": {
-                  "text": "no demand",
+                  "text": "stop",
                   "color": "transparent"
                 },
                 "1": {
+                  "text": "tank",
+                  "color": "purple"
+                },
+                "2": {
                   "text": "heating",
                   "color": "orange"
                 },
-                "2": {
+                "3": {
                   "text": "cooling",
                   "color": "blue"
+                },
+                "4": {
+                  "text": "actuator",
+                  "color": "text"
                 }
               }
             }
@@ -2723,12 +2731,12 @@
     {
       "id": 36,
       "type": "stat",
-      "title": "Demand radiator zone",
+      "title": "Space heating",
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-sensordata"
       },
-      "description": "HR75 thermostat demand (read every 5 min). Needs an external signal when the main zone uses a room thermostat.",
+      "description": "IR53: space heating normal operation (both zones).",
       "gridPos": {
         "x": 15,
         "y": 48,
@@ -2742,7 +2750,7 @@
             "type": "influxdb",
             "uid": "influxdb-sensordata"
           },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_add\")\n  |> last()\n  |> set(key: \"_field\", value: \"Demand radiator zone\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"sh_normal\")\n  |> last()\n  |> set(key: \"_field\", value: \"Space heating\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ],
       "fieldConfig": {
@@ -2766,16 +2774,12 @@
               "type": "value",
               "options": {
                 "0": {
-                  "text": "no demand",
+                  "text": "idle",
                   "color": "transparent"
                 },
                 "1": {
-                  "text": "heating",
+                  "text": "running",
                   "color": "orange"
-                },
-                "2": {
-                  "text": "cooling",
-                  "color": "blue"
                 }
               }
             }
@@ -2936,7 +2940,7 @@
         "type": "influxdb",
         "uid": "influxdb-sensordata"
       },
-      "description": "Running = DI20/DI21; demand = HR74/HR75 > 0; pump on = PWM < 95 %.",
+      "description": "Zone running = DI20/DI21; pump on = PWM < 95 %. (HR74/HR75 are not used: they only hold demands written via Modbus/cloud.)",
       "gridPos": {
         "x": 0,
         "y": 52,
@@ -2950,7 +2954,7 @@
             "type": "influxdb",
             "uid": "influxdb-sensordata"
           },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_main\")\n  |> map(fn: (r) => ({ r with _value: if r._value > 0.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Demand main\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"sh_normal\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Space heating\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -2967,14 +2971,6 @@
             "uid": "influxdb-sensordata"
           },
           "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mix_pump_pwm\")\n  |> map(fn: (r) => ({ r with _value: if r._value < 95.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Floor pump on\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
-        },
-        {
-          "refId": "D",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-sensordata"
-          },
-          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_add\")\n  |> map(fn: (r) => ({ r with _value: if r._value > 0.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Demand radiators\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "E",
