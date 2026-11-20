@@ -2330,19 +2330,876 @@
       }
     },
     {
-      "id": 33,
+      "id": 30,
       "type": "row",
-      "title": "Hydraulic separator",
-      "collapsed": true,
+      "title": "Zones & demand",
+      "collapsed": false,
       "gridPos": {
         "x": 0,
         "y": 47,
         "w": 24,
         "h": 1
       },
+      "panels": []
+    },
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Main zone (floor)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "DI20: main zone running.",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_main_zone\")\n  |> last()\n  |> set(key: \"_field\", value: \"Main zone (floor)\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "on",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 6,
+                "result": {
+                  "text": "on",
+                  "color": "orange"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 32,
+      "type": "stat",
+      "title": "Demand main zone",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "HR74 thermostat demand (read every 5 min).",
+      "gridPos": {
+        "x": 3,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_main\")\n  |> last()\n  |> set(key: \"_field\", value: \"Demand main zone\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "no demand",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "heating",
+                  "color": "orange"
+                },
+                "2": {
+                  "text": "cooling",
+                  "color": "blue"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 33,
+      "type": "stat",
+      "title": "Floor pump speed",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "Bizone mixed pump: speed = 100 − PWM (IR69, 0 % PWM = full speed).",
+      "gridPos": {
+        "x": 6,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mix_pump_pwm\")\n  |> last()\n  |> map(fn: (r) => ({ r with _value: 100.0 - r._value }))\n  |> set(key: \"_field\", value: \"Floor pump speed\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "Mixing valve",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "IR71: 100 % = fully open to the heat pump side.",
+      "gridPos": {
+        "x": 9,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mixing_valve\")\n  |> last()\n  |> set(key: \"_field\", value: \"Mixing valve\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 35,
+      "type": "stat",
+      "title": "Radiator zone",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "DI21: additional zone running.",
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_add_zone\")\n  |> last()\n  |> set(key: \"_field\", value: \"Radiator zone\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "on",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 6,
+                "result": {
+                  "text": "on",
+                  "color": "orange"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 36,
+      "type": "stat",
+      "title": "Demand radiator zone",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "HR75 thermostat demand (read every 5 min). Needs an external signal when the main zone uses a room thermostat.",
+      "gridPos": {
+        "x": 15,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_add\")\n  |> last()\n  |> set(key: \"_field\", value: \"Demand radiator zone\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "no demand",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "heating",
+                  "color": "orange"
+                },
+                "2": {
+                  "text": "cooling",
+                  "color": "blue"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 37,
+      "type": "stat",
+      "title": "Radiator pump speed",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "Bizone direct pump: speed = 100 − PWM (IR70). ~0 % = pump off.",
+      "gridPos": {
+        "x": 18,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"direct_pump_pwm\")\n  |> last()\n  |> map(fn: (r) => ({ r with _value: 100.0 - r._value }))\n  |> set(key: \"_field\", value: \"Radiator pump speed\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 5
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 38,
+      "type": "stat",
+      "title": "Target radiators",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "IR81: leaving water target of the additional zone.",
+      "gridPos": {
+        "x": 21,
+        "y": 48,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"lwt_target_add\")\n  |> last()\n  |> set(key: \"_field\", value: \"Target radiators\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      }
+    },
+    {
+      "id": 39,
+      "type": "state-timeline",
+      "title": "Zone operation",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "Running = DI20/DI21; demand = HR74/HR75 > 0; pump on = PWM < 95 %.",
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_main\")\n  |> map(fn: (r) => ({ r with _value: if r._value > 0.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Demand main\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_main_zone\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Main zone running\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mix_pump_pwm\")\n  |> map(fn: (r) => ({ r with _value: if r._value < 95.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Floor pump on\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"s_demand_add\")\n  |> map(fn: (r) => ({ r with _value: if r._value > 0.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Demand radiators\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"d_add_zone\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Radiator zone running\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"direct_pump_pwm\")\n  |> map(fn: (r) => ({ r with _value: if r._value < 95.0 then 1.0 else 0.0 }))\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> set(key: \"_field\", value: \"Radiator pump on\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "on",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "mergeValues": true,
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 40,
+      "type": "timeseries",
+      "title": "Zone pumps & mixing valve",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "Pump speed = 100 − PWM. A target above 0 with radiator pump speed ~0 % means the unit does not drive the radiator pump.",
+      "gridPos": {
+        "x": 12,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mix_pump_pwm\")\n  |> map(fn: (r) => ({ r with _value: 100.0 - r._value }))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> set(key: \"_field\", value: \"Floor pump speed\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"direct_pump_pwm\")\n  |> map(fn: (r) => ({ r with _value: 100.0 - r._value }))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> set(key: \"_field\", value: \"Radiator pump speed\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and r._field == \"mixing_valve\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> set(key: \"_field\", value: \"Mixing valve\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": 120000,
+            "lineInterpolation": "smooth",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisSoftMin": 0,
+            "barAlignment": -1,
+            "axisSoftMax": 100
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Floor pump speed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Radiator pump speed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mixing valve"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mixing valve"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 44,
+      "type": "row",
+      "title": "Hydraulic separator",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 1
+      },
       "panels": [
         {
-          "id": 30,
+          "id": 41,
           "type": "timeseries",
           "title": "Separator: supply & return",
           "datasource": {
@@ -2352,7 +3209,7 @@
           "description": "Needs SEC_SUPPLY_SOURCE / SEC_RETURN_SOURCE.",
           "gridPos": {
             "x": 0,
-            "y": 48,
+            "y": 61,
             "w": 12,
             "h": 9
           },
@@ -2544,7 +3401,7 @@
           }
         },
         {
-          "id": 31,
+          "id": 42,
           "type": "timeseries",
           "title": "Separator: differences & flow",
           "datasource": {
@@ -2554,7 +3411,7 @@
           "description": "balanced: |ΔLWT| ≤ 1 K and |ΔRET| ≤ 1 K. primary_excess: ΔRET > 1 K. secondary_excess: ΔLWT > 1 K.",
           "gridPos": {
             "x": 12,
-            "y": 48,
+            "y": 61,
             "w": 12,
             "h": 9
           },
@@ -2626,7 +3483,7 @@
           }
         },
         {
-          "id": 32,
+          "id": 43,
           "type": "state-timeline",
           "title": "Separator verdict",
           "datasource": {
@@ -2635,7 +3492,7 @@
           },
           "gridPos": {
             "x": 0,
-            "y": 57,
+            "y": 70,
             "w": 24,
             "h": 4
           },
@@ -2697,19 +3554,19 @@
       ]
     },
     {
-      "id": 36,
+      "id": 47,
       "type": "row",
       "title": "Logger diagnostics",
       "collapsed": true,
       "gridPos": {
         "x": 0,
-        "y": 48,
+        "y": 61,
         "w": 24,
         "h": 1
       },
       "panels": [
         {
-          "id": 34,
+          "id": 45,
           "type": "timeseries",
           "title": "Poll duration",
           "datasource": {
@@ -2718,7 +3575,7 @@
           },
           "gridPos": {
             "x": 0,
-            "y": 49,
+            "y": 62,
             "w": 12,
             "h": 7
           },
@@ -2773,7 +3630,7 @@
           }
         },
         {
-          "id": 35,
+          "id": 46,
           "type": "timeseries",
           "title": "Polls without connection",
           "datasource": {
@@ -2782,7 +3639,7 @@
           },
           "gridPos": {
             "x": 12,
-            "y": 49,
+            "y": 62,
             "w": 12,
             "h": 7
           },
