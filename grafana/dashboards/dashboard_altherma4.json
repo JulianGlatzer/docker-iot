@@ -3030,6 +3030,88 @@
     },
     {
       "id": 40,
+      "type": "state-timeline",
+      "title": "Zone status (inferred demand)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-sensordata"
+      },
+      "description": "There is no Modbus register for the room-thermostat input (X42M), so demand is inferred:\n• demand served = zone running (DI20/DI21) and zone pump on\n• frost protection = zone running while DI14/DI15 is set (runs without thermostat demand)\n• running, pump off = zone active but pump stopped (transition, restart delay, defrost)\n• off = zone not running: no demand, or demand not served (zone switched off, error, wrong control mode/wiring)\nA zone that shows 'demand served' continuously, even when the thermostat is satisfied, is most likely set to leaving-water control ([1.12]/[2.12] = Départ d'eau) or still in the screed-drying program.",
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and (r._field == \"d_main_zone\" or r._field == \"mix_pump_pwm\" or r._field == \"d_frost_protection\" or r._field == \"d_pipe_freeze\"))\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.d_main_zone)\n  |> map(fn: (r) => ({_time: r._time, _field: \"Main zone (floor)\", _value:\n       if r.d_main_zone < 0.5 then 0.0\n       else if (exists r.d_frost_protection and r.d_frost_protection > 0.5) or (exists r.d_pipe_freeze and r.d_pipe_freeze > 0.5) then 2.0\n       else if exists r.mix_pump_pwm and r.mix_pump_pwm < 95.0 then 3.0\n       else 1.0}))"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-sensordata"
+          },
+          "query": "from(bucket: \"sensordata\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"altherma4\" and (r._field == \"d_add_zone\" or r._field == \"direct_pump_pwm\" or r._field == \"d_frost_protection\" or r._field == \"d_pipe_freeze\"))\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.d_add_zone)\n  |> map(fn: (r) => ({_time: r._time, _field: \"Radiator zone\", _value:\n       if r.d_add_zone < 0.5 then 0.0\n       else if (exists r.d_frost_protection and r.d_frost_protection > 0.5) or (exists r.d_pipe_freeze and r.d_pipe_freeze > 0.5) then 2.0\n       else if exists r.direct_pump_pwm and r.direct_pump_pwm < 95.0 then 3.0\n       else 1.0}))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off / no demand",
+                  "color": "transparent"
+                },
+                "1": {
+                  "text": "running, pump off",
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "frost protection",
+                  "color": "blue"
+                },
+                "3": {
+                  "text": "demand served",
+                  "color": "orange"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "mergeValues": true,
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 41,
       "type": "timeseries",
       "title": "Zone pumps & mixing valve",
       "datasource": {
@@ -3183,19 +3265,19 @@
       }
     },
     {
-      "id": 44,
+      "id": 45,
       "type": "row",
       "title": "Hydraulic separator",
       "collapsed": true,
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 65,
         "w": 24,
         "h": 1
       },
       "panels": [
         {
-          "id": 41,
+          "id": 42,
           "type": "timeseries",
           "title": "Separator: supply & return",
           "datasource": {
@@ -3205,7 +3287,7 @@
           "description": "Needs SEC_SUPPLY_SOURCE / SEC_RETURN_SOURCE.",
           "gridPos": {
             "x": 0,
-            "y": 61,
+            "y": 66,
             "w": 12,
             "h": 9
           },
@@ -3397,7 +3479,7 @@
           }
         },
         {
-          "id": 42,
+          "id": 43,
           "type": "timeseries",
           "title": "Separator: differences & flow",
           "datasource": {
@@ -3407,7 +3489,7 @@
           "description": "balanced: |ΔLWT| ≤ 1 K and |ΔRET| ≤ 1 K. primary_excess: ΔRET > 1 K. secondary_excess: ΔLWT > 1 K.",
           "gridPos": {
             "x": 12,
-            "y": 61,
+            "y": 66,
             "w": 12,
             "h": 9
           },
@@ -3479,7 +3561,7 @@
           }
         },
         {
-          "id": 43,
+          "id": 44,
           "type": "state-timeline",
           "title": "Separator verdict",
           "datasource": {
@@ -3488,7 +3570,7 @@
           },
           "gridPos": {
             "x": 0,
-            "y": 70,
+            "y": 75,
             "w": 24,
             "h": 4
           },
@@ -3550,19 +3632,19 @@
       ]
     },
     {
-      "id": 47,
+      "id": 48,
       "type": "row",
       "title": "Logger diagnostics",
       "collapsed": true,
       "gridPos": {
         "x": 0,
-        "y": 61,
+        "y": 66,
         "w": 24,
         "h": 1
       },
       "panels": [
         {
-          "id": 45,
+          "id": 46,
           "type": "timeseries",
           "title": "Poll duration",
           "datasource": {
@@ -3571,7 +3653,7 @@
           },
           "gridPos": {
             "x": 0,
-            "y": 62,
+            "y": 67,
             "w": 12,
             "h": 7
           },
@@ -3626,7 +3708,7 @@
           }
         },
         {
-          "id": 46,
+          "id": 47,
           "type": "timeseries",
           "title": "Polls without connection",
           "datasource": {
@@ -3635,7 +3717,7 @@
           },
           "gridPos": {
             "x": 12,
-            "y": 62,
+            "y": 67,
             "w": 12,
             "h": 7
           },
