@@ -3053,7 +3053,7 @@
       "gridPos": {
         "x": 0,
         "y": 60,
-        "w": 24,
+        "w": 19,
         "h": 5
       },
       "targets": [
@@ -3144,6 +3144,21 @@
     },
     {
       "id": 41,
+      "type": "text",
+      "title": "Legend: zone status",
+      "gridPos": {
+        "x": 19,
+        "y": 60,
+        "w": 5,
+        "h": 5
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"display:flex;align-items:center;margin:2px 0\"><span style=\"display:inline-block;width:14px;height:14px;border-radius:2px;background:#FF9830;margin-right:8px\"></span>demand served (zone + pump on)</div><div style=\"display:flex;align-items:center;margin:2px 0\"><span style=\"display:inline-block;width:14px;height:14px;border-radius:2px;background:#5794F2;margin-right:8px\"></span>frost protection</div><div style=\"display:flex;align-items:center;margin:2px 0\"><span style=\"display:inline-block;width:14px;height:14px;border-radius:2px;background:#FADE2A;margin-right:8px\"></span>running, pump off</div><div style=\"display:flex;align-items:center;margin:2px 0\"><span style=\"display:inline-block;width:14px;height:14px;border-radius:2px;background:#3a3f44;margin-right:8px\"></span>off / no demand</div>"
+      }
+    },
+    {
+      "id": 42,
       "type": "timeseries",
       "title": "Zone pumps & mixing valve",
       "datasource": {
@@ -3297,7 +3312,7 @@
       }
     },
     {
-      "id": 45,
+      "id": 46,
       "type": "row",
       "title": "Hydraulic separator",
       "collapsed": true,
@@ -3309,7 +3324,7 @@
       },
       "panels": [
         {
-          "id": 42,
+          "id": 43,
           "type": "timeseries",
           "title": "Separator: supply & return",
           "datasource": {
@@ -3511,7 +3526,7 @@
           }
         },
         {
-          "id": 43,
+          "id": 44,
           "type": "timeseries",
           "title": "Separator: differences & flow",
           "datasource": {
@@ -3593,7 +3608,7 @@
           }
         },
         {
-          "id": 44,
+          "id": 45,
           "type": "state-timeline",
           "title": "Separator verdict",
           "datasource": {
@@ -3664,7 +3679,7 @@
       ]
     },
     {
-      "id": 48,
+      "id": 49,
       "type": "row",
       "title": "Logger diagnostics",
       "collapsed": true,
@@ -3676,7 +3691,7 @@
       },
       "panels": [
         {
-          "id": 46,
+          "id": 47,
           "type": "timeseries",
           "title": "Poll duration",
           "datasource": {
@@ -3740,7 +3755,7 @@
           }
         },
         {
-          "id": 47,
+          "id": 48,
           "type": "timeseries",
           "title": "Polls without connection",
           "datasource": {
