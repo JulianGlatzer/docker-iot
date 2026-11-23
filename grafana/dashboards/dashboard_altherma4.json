@@ -3135,9 +3135,7 @@
         "mergeValues": true,
         "rowHeight": 0.8,
         "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom"
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single"
